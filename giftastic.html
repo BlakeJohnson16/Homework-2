@@ -1,0 +1,113 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+    <title>Gif Picker</title>
+</head>
+<body>
+
+<div class="container jumbotron">
+      <h1>Look up a Gif!</h1>
+
+      <div id="buttonsView"></div>
+
+      <form id="gif-form">
+        <label for="gif-input">what kind of gif are you looking for?</label>
+        <input type="text" id="gif-input" >
+        
+        <input id="addGif" type="submit" value="Sumbit">
+      </form>
+
+      <div id="gifView" data-state="still" ></div>
+      </div>
+      <div id="gifDiv"></div>
+</div> 
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<script>
+
+$(document).ready(function(){
+    var topics = ["Cats", "Dogs", "Birds"];
+
+    function buttonCreate(){
+        $('#buttonsView').empty();
+        
+        for ( var i=0; i < topics.length; i++) {
+            var a = $('<button>');
+            a.addClass('gif');
+            a.attr('data-name', topics[i]);
+            a.text(topics[i]);
+            $('#buttonsView').append(a);
+        }
+    }    
+    buttonCreate();
+   
+
+  $(document).on('click', '.gif', function() {
+
+    var input = $(this).html(); 
+    console.log(input);
+    
+    var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=ab0e5e3d75744d3bb6a6b552ef70b211&q=" + input + "&limit=25&offset=0&rating=G&lang=en";
+        console.log(queryURL);
+        $.ajax({url: queryURL, method: 'GET'})
+        .done(function(response) {
+            var results = response.data;
+
+            $('#gifView').empty();
+
+                for ( var i=0; i < results.length; i++) {
+                    var imageDiv = $('<div>');
+                    var imageView = results[i].images.fixed_height.url;
+                    var still = results[i].images.fixed_height_still.url;
+
+                    var gifImage = $('<img>').attr("src", still).attr('data-animate', imageView).attr('data-still', still);
+                    gifImage.attr('data-state', 'still');
+                    $('#gifView').prepend(gifImage);
+                    gifImage.on('click', playGif);
+                    
+
+                        var rating = results[i].rating;
+
+                        var displayRated= $('<p>').text("Rating: " + rating);
+                        $('#gifView').prepend(displayRated);
+            
+                } 
+        }); 
+
+         function playGif() { 
+            var state = $(this).attr('data-state');
+              console.log(state);
+                 if ( state == 'still'){
+                  $(this).attr('src', $(this).data('animate'));
+                  $(this).attr('data-state', 'animate');
+                 } else{
+                  $(this).attr('src', $(this).data('still'));
+                  $(this).attr('data-state', 'still');
+                    }
+
+                } 
+                
+    }) 
+
+$(document).on('click', '#addGif', function(){
+    if ($('#gif-input').val().trim() == ''){
+      alert('Please type something in!');
+   }
+   else {
+    var gifSearch = $('#gif-input').val().trim();
+    topics.push(gifSearch);
+    $('#gif-input').val('');
+    buttonCreate();
+    return false;
+
+    }
+
+});
+
+});
+
+</script>
+</body>
+</html>
